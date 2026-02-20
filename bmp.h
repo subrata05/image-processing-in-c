@@ -9,6 +9,7 @@
 #define BMP_FILE_HEADER_SIZE    14
 #define BMP_MIN_INFO_SIZE       40
 
+
 typedef struct {
     unsigned char fileHeader[BMP_FILE_HEADER_SIZE];
     unsigned char *infoHeader;
@@ -27,5 +28,6 @@ typedef struct {
 int  bmpLoad(const char *filename, BMPImage_t *img);
 int  bmpSave(const char *filename, const BMPImage_t *img);
 void bmpFree(BMPImage_t *img);
+void printUsage(const char *programName);
 
-#endif /*BMP_H*/
+#endif
