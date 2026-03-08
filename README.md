@@ -1,259 +1,174 @@
 # BMP Image Processor
 
-A modular C program to load, manipulate, and save BMP image files with comprehensive rotation and transformation capabilities.
+A lightweight command-line tool written in C for loading, transforming, and saving BMP image files. Supports a wide range of rotations and flips, including batch operations. More to come later. 
 
 ---
-
-## Features
-
-- **Load & Save**: Read and write 24-bit and 32-bit BMP files
-- **Rotation**: 90°, 180°, 270° in both directions
-- **Flipping**: Horizontal mirror, vertical flip
-- **Transposition**: Flip along main or anti-diagonal
-- **Batch Processing**: Chain multiple transformations in one command
-- **Debugging**: Full GDB support with custom inspection commands
-- **Memory Safe**: Valgrind-clean with no leaks
-
----
-
-## Build
-
-```bash
-make              # Build release version (optimized)
-make debug        # Build debug version (for GDB)
-make clean        # Clean build artifacts
-```
-
-## Basic Usage (Copy Only)
-
-```bash
-./img-processor <input.bmp> [output.bmp]
-```
-
-Examples:
-```bash
-./img-processor photo.bmp              # Creates output.bmp
-./img-processor photo.bmp copy.bmp     # Creates copy.bmp
-```
-
-## Rotation & Transformation
-
-### Single Operation
-
-```bash
-./img-processor input.bmp output.bmp --rotate <type>
-```
-
-Available rotation types:
-
-| Type | Aliases | Description |
-|------|---------|-------------|
-| `90cw` | `90`, `right`, `r` | 90° clockwise |
-| `90ccw` | `left`, `l` | 90° counter-clockwise |
-| `180` | `flip` | 180° rotation |
-| `270cw` | `270` | 270° clockwise |
-| `hflip` | `mirror`, `h` | Horizontal flip (mirror) |
-| `vflip` | `v` | Vertical flip |
-| `transpose` | `diag`, `t` | Flip along main diagonal |
-| `antidiag` | `at` | Flip along anti-diagonal |
-
-Examples:
-```bash
-./img-processor photo.bmp rotated.bmp --rotate 90cw
-./img-processor photo.bmp mirror.bmp --rotate hflip
-./img-processor photo.bmp flipped.bmp --rotate 180
-```
-
-### Batch Operations (Multiple Transformations)
-
-Chain multiple operations with comma separation:
-
-```bash
-./img-processor input.bmp output.bmp --batch <type1,type2,type3>
-```
-
-Examples:
-```bash
-# Mirror then rotate 90° clockwise
-./img-processor photo.bmp effect.bmp --batch mirror,90cw
-
-# Complex: rotate, flip, rotate back
-./img-processor photo.bmp complex.bmp --batch 90cw,hflip,90ccw
-
-# 180° via double 90°
-./img-processor photo.bmp out.bmp --batch 90cw,90cw
-```
-
-### List Available Types
-
-```bash
-./img-processor --list
-# or
-make list-rotations
-```
-
-## Debug with GDB
-
-### Using Makefile (Recommended)
-
-```bash
-make gdb INPUT_FILE=your.bmp [OUTPUT_FILE=out.bmp] [ROTATION=type]
-```
-
-Examples:
-```bash
-make gdb INPUT_FILE=photo.bmp
-make gdb INPUT_FILE=photo.bmp ROTATION=90cw
-make gdb INPUT_FILE=photo.bmp OUTPUT_FILE=rot.bmp ROTATION=hflip,90cw
-```
-
-### Manual GDB
-
-```bash
-gdb -x .gdbinit --args ./img-processor your.bmp out.bmp --rotate 90cw
-```
-
-### GDB Commands
-
-#### Basic Commands
-
-| Command | Description |
-|---------|-------------|
-| `run` | Start program |
-| `continue` / `c` | Continue execution |
-| `next` / `n` | Step to next line (step over) |
-| `step` / `s` | Step into function |
-| `finish` | Run until current function returns |
-| `quit` | Exit GDB |
-
-#### BMP Inspection Commands
-
-| Command | Description |
-|---------|-------------|
-| `bmp_info` | Show image metadata |
-| `bmp_header_dump` | Show raw header bytes |
-| `bmp_pixel_sample` | Show pixel data sample |
-
-#### Rotation Debugging Commands
-
-| Command | Description |
-|---------|-------------|
-| `rotation_info` | List all rotation types and enum values |
-| `rotation_check <n>` | Decode rotation type from integer |
-| `compare_images` | Compare source vs destination properties |
-| `check_dimensions` | Analyze dimension changes |
-
-## Memory Check with Valgrind
-
-```bash
-make valgrind INPUT_FILE=your.bmp [OUTPUT_FILE=out.bmp] [ROTATION=type]
-```
-
-Examples:
-```bash
-make valgrind INPUT_FILE=photo.bmp
-make valgrind INPUT_FILE=photo.bmp ROTATION=90ccw
-make valgrind INPUT_FILE=big.bmp OUTPUT_FILE=result.bmp ROTATION=180
-```
-
-## Quick Run with Makefile
-
-```bash
-# Copy only
-make run INPUT_FILE=photo.bmp
-
-# With rotation
-make run INPUT_FILE=photo.bmp ROTATION=90cw
-
-# With custom output
-make run INPUT_FILE=photo.bmp OUTPUT_FILE=rotated.bmp ROTATION=90cw
-
-# Batch rotation
-make run INPUT_FILE=photo.bmp ROTATION=hflip,90cw OUTPUT_FILE=effect.bmp
-```
-
-## Makefile Targets
-
-| Target | Description |
-|--------|-------------|
-| `make` / `make release` | Optimized build (`-O2`) |
-| `make debug` | Debug build with symbols (`-g -O0`) |
-| `make run` | Build and run (requires `INPUT_FILE`) |
-| `make gdb` | Build and launch GDB |
-| `make valgrind` | Run with memory leak detection |
-| `make list-rotations` | Display available rotation types |
-| `make clean` | Remove executable and GDB history |
-| `make help` | Show comprehensive usage information |
 
 ## Project Structure
 
 ```
-.
-├── main.c           # Command-line interface and argument parsing
-├── bmp.h            # BMP file format structures and I/O functions
-├── bmp.c            # BMP loading, saving, and memory management
-├── rotation.h       # Rotation types and transformation API
-├── rotation.c       # Rotation implementations and batch processing
-├── Makefile         # Build automation with input validation
-├── .gdbinit         # GDB configuration with custom commands
-└── README.md        # This file
+image-processing-in-c/
+├── src/
+│   ├── main.c          # Entry point, argument parsing, program flow
+│   ├── bmp.c           # BMP file loading, saving, and memory management
+│   └── rotation.c      # All rotation and flip transformations
+├── include/
+│   ├── bmp.h           # BMPImage_t struct and bmp function prototypes
+│   └── rotation.h      # RotationType_t enum and rotation function prototypes
+├── bmp_img/            # Place your input BMP files here
+├── .gdbinit            # GDB configuration for debugging
+├── Makefile
+└── README.md
 ```
 
-## Technical Details
+---
 
-### Rotation Mathematics
+## Building
 
-All transformations use coordinate mapping formulas:
+### Release build (optimized)
+```bash
+make
+# or explicitly:
+make release
+```
 
-- **90° CW**: `(x, y) → (height-1-y, x)`
-- **90° CCW**: `(x, y) → (y, width-1-x)`
-- **180°**: `(x, y) → (width-1-x, height-1-y)`
-- **H-Flip**: `(x, y) → (width-1-x, y)`
-- **V-Flip**: `(x, y) → (x, height-1-y)`
-- **Transpose**: `(x, y) → (y, x)`
+### Debug build (for GDB / Valgrind)
+```bash
+make debug
+```
 
-### Memory Management
+---
 
-- `bmpLoad()`: Allocates `infoHeader`, `colorTab`, `pixel` → caller frees with `bmpFree()`
-- `rotateImage()`: Allocates new `BMPImage_t` → caller frees with `bmpFree()`
-- `rotateBatch()`: Manages internal buffers, copies result → caller frees result with `bmpFree()`
-
-### BMP Format Support
-
-- 24-bit RGB (most common)
-- 32-bit RGBA (with alpha)
-- 8-bit indexed (color table preserved through rotations)
-- Bottom-up and top-down row ordering (negative height values)
-
-## Safety Notes
-
-- Input files are **NEVER** deleted by any `make` target
-- Clean target only removes: executable, GDB history, object files
-- Output files (`.bmp`) are preserved even during clean
-- All file paths are relative to current working directory
-- Memory leaks are prevented even on error paths
-
-## Examples Summary
+## Usage
 
 ```bash
-# Build and basic copy
+./img-processor <input_file> [options] [output_file]
+```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--rotate <type>` | Apply a single rotation (can be used multiple times) |
+| `--batch <types>` | Apply multiple rotations in one go (comma-separated) |
+| `-o <file>` | Specify output file (default: `output.bmp`) |
+| `--list` | List all available rotation types |
+| `--help` / `-h` | Show usage information |
+
+---
+
+## Rotation Types
+
+| Argument(s) | Effect |
+|-------------|--------|
+| `90cw`, `90`, `right`, `r` | 90° clockwise |
+| `90ccw`, `left`, `l` | 90° counter-clockwise |
+| `180`, `flip` | 180° rotation |
+| `270cw`, `270` | 270° clockwise |
+| `hflip`, `mirror`, `h` | Horizontal flip (mirror) |
+| `vflip`, `v` | Vertical flip |
+| `transpose`, `diag`, `t` | Flip along main diagonal |
+| `antidiag`, `at` | Flip along anti-diagonal |
+
+---
+
+## Examples
+
+```bash
+# Simple 90° clockwise rotation
+./img-processor bmp_img/photo.bmp --rotate 90cw -o bmp_img/rotated.bmp
+
+# Mirror the image
+./img-processor bmp_img/photo.bmp --rotate mirror -o bmp_img/mirrored.bmp
+
+# Chain multiple rotations (mirror then rotate 90° CW)
+./img-processor bmp_img/photo.bmp --rotate mirror --rotate 90cw -o bmp_img/result.bmp
+
+# Batch rotation (comma-separated, same result as above)
+./img-processor bmp_img/photo.bmp --batch mirror,90cw -o bmp_img/result.bmp
+
+# Copy without any transformation
+./img-processor bmp_img/photo.bmp -o bmp_img/copy.bmp
+```
+
+---
+
+## Running with Make
+
+The Makefile includes convenience targets that build and run in one step.
+
+```bash
+# Basic run
 make run INPUT_FILE=photo.bmp
 
-# Single rotation
-make run INPUT_FILE=photo.bmp ROTATION=90cw OUTPUT_FILE=rotated.bmp
+# Run with rotation
+make run INPUT_FILE=photo.bmp ROTATION=90cw OUTPUT_FILE=bmp_img/rotated.bmp
 
-# Horizontal mirror
-./img-processor photo.bmp mirror.bmp --rotate hflip
+# Batch rotation
+make run INPUT_FILE=photo.bmp ROTATION=90cw,hflip OUTPUT_FILE=bmp_img/complex.bmp
 
-# Batch: mirror then rotate
-./img-processor photo.bmp out.bmp --batch mirror,90cw
+# Debug with GDB
+make gdb INPUT_FILE=photo.bmp ROTATION=180
 
-# Debug rotation step-by-step
-make gdb INPUT_FILE=photo.bmp ROTATION=90cw
-
-# Check for memory leaks
-make valgrind INPUT_FILE=photo.bmp ROTATION=180
-
-# List all rotation options
-make list-rotations
+# Check for memory leaks with Valgrind
+make valgrind INPUT_FILE=photo.bmp ROTATION=90ccw OUTPUT_FILE=bmp_img/result.bmp
 ```
+
+### Make Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `INPUT_FILE` | *(required)* | Input BMP file. If no path given, assumes `bmp_img/` |
+| `OUTPUT_FILE` | `bmp_img/output.bmp` | Output BMP file |
+| `ROTATION` | *(none)* | Rotation type or comma-separated batch |
+
+---
+
+## Supported BMP Formats
+
+- Any BMP with a standard `BITMAPINFOHEADER` (40-byte info header or larger)
+- Any bit depth: 1, 4, 8, 16, 24, 32 bpp
+- Optional color table (for indexed color images)
+- Both positive and negative height values (top-down and bottom-up DIBs)
+
+---
+
+## How It Works
+
+### BMP Loading (`bmp.c`)
+Reads the 14-byte file header and variable-length info header, extracts width, height, bit depth, and pixel data offset, then loads the optional color table and raw pixel buffer into a `BMPImage_t` struct.
+
+### Transformations (`rotation.c`)
+Each transformation maps source pixel coordinates `(x, y)` to destination coordinates `(dstX, dstY)` using a small transform function passed to a generic `allocateAndTransformPixels()` helper. Headers are rebuilt with updated width/height for operations that swap image dimensions (e.g. 90° rotations).
+
+| Transformation | Coordinate mapping |
+|----------------|--------------------|
+| 90° CW | `(x, y) → (H-1-y, x)` |
+| 90° CCW | `(x, y) → (y, W-1-x)` |
+| 180° | `(x, y) → (W-1-x, H-1-y)` |
+| Horizontal flip | `(x, y) → (W-1-x, y)` |
+| Vertical flip | `(x, y) → (x, H-1-y)` |
+| Transpose | `(x, y) → (y, x)` |
+| Anti-diagonal | `(x, y) → (H-1-y, W-1-x)` |
+
+### Batch Operations
+`rotateBatch()` applies a sequence of transformations by ping-ponging between two temporary `BMPImage_t` buffers, freeing intermediate results as it goes.
+
+---
+
+## Cleaning Up
+
+```bash
+make clean
+```
+
+Removes the compiled binary and any `.o` files. BMP images in `bmp_img/` are left untouched.
+
+---
+
+## Dependencies
+
+- GCC (C99 or later)
+- Standard C library (`stdio.h`, `stdlib.h`, `string.h`, `stdint.h`)
+- Math library (`-lm`, linked automatically by the Makefile)
+- Optional: `gdb`, `valgrind` for debugging targets
