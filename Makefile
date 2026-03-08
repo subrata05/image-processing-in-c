@@ -9,7 +9,18 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Wpedantic -std=c99
 TARGET = img-processor
-SRCS = main.c bmp.c rotation.c
+
+# Source paths
+SRC_DIR = src
+INC_DIR = include
+IMG_DIR = bmp_img
+
+SRCS = $(SRC_DIR)/main.c $(SRC_DIR)/bmp.c $(SRC_DIR)/rotation.c
+OBJS = $(SRCS:.c=.o)
+HEADERS = $(INC_DIR)/bmp.h $(INC_DIR)/rotation.h 
+
+# Include path for compiler
+CFLAGS += -I$(INC_DIR)
 
 # =============================================================================
 # USER CONFIGURABLE VARIABLES
@@ -20,7 +31,7 @@ SRCS = main.c bmp.c rotation.c
 INPUT_FILE ?=
 
 # OUTPUT_FILE: Optional - defaults to output.bmp if not specified
-OUTPUT_FILE ?= output.bmp
+OUTPUT_FILE ?= $(IMG_DIR)/output.bmp
 
 # ROTATION: Optional - rotation type (90cw, 90ccw, 180, hflip, vflip, etc.)
 # Can specify multiple rotations separated by commas for batch processing
@@ -53,7 +64,7 @@ debug: $(TARGET)
 # -----------------------------------------------------------------------------
 # TARGET: $(TARGET) (the executable)
 # -----------------------------------------------------------------------------
-$(TARGET): $(SRCS) bmp.h rotation.h
+$(TARGET): $(SRCS) $(HEADERS)
 	$(CC) $(CFLAGS) -o $(TARGET) $(SRCS) -lm
 
 # =============================================================================
@@ -65,20 +76,24 @@ check-input:
 ifeq ($(INPUT_FILE),)
 	@echo "ERROR: No input file specified!"
 	@echo ""
-	@echo "Usage: make <target> INPUT_FILE=your.bmp [OUTPUT_FILE=out.bmp] [ROTATION=type]"
+	@echo "Usage: make <target> INPUT_FILE=bmp_img/photo.bmp [OUTPUT_FILE=bmp_img/out.bmp] [ROTATION=type]"
 	@echo ""
 	@echo "Examples:"
-	@echo "  make run INPUT_FILE=photo.bmp"
-	@echo "  make run INPUT_FILE=mr.bean.bmp OUTPUT_FILE=copy.bmp"
-	@echo "  make run INPUT_FILE=photo.bmp ROTATION=90cw OUTPUT_FILE=rotated.bmp"
-	@echo "  make run INPUT_FILE=photo.bmp ROTATION=hflip,90cw OUTPUT_FILE=complex.bmp"
-	@echo "  make gdb INPUT_FILE=test.bmp ROTATION=180"
-	@echo "  make valgrind INPUT_FILE=big.bmp ROTATION=90ccw OUTPUT_FILE=result.bmp"
+	@echo "  make run INPUT_FILE=bmp_img/photo.bmp"
+	@echo "  make run INPUT_FILE=bmp_img/mr.bean.bmp OUTPUT_FILE=bmp_img/copy.bmp"
+	@echo "  make run INPUT_FILE=bmp_img/photo.bmp ROTATION=90cw OUTPUT_FILE=bmp_img/rotated.bmp"
+	@echo "  make run INPUT_FILE=bmp_img/photo.bmp ROTATION=hflip,90cw OUTPUT_FILE=bmp_img/complex.bmp"
+	@echo "  make gdb INPUT_FILE=bmp_img/test.bmp ROTATION=180"
+	@echo "  make valgrind INPUT_FILE=bmp_img/big.bmp ROTATION=90ccw OUTPUT_FILE=bmp_img/result.bmp"
 	@echo ""
 	@exit 1
 endif
-# @exit 1 stops the make process with error
-# The @ suppresses echoing the command itself
+
+# If INPUT_FILE doesn't contain a directory, assume it's in IMG_DIR
+INPUT_PATH := $(if $(dir $(INPUT_FILE)),$(INPUT_FILE),$(IMG_DIR)/$(INPUT_FILE))
+
+# If OUTPUT_FILE doesn't contain a directory, put it in IMG_DIR
+OUTPUT_PATH := $(if $(dir $(OUTPUT_FILE)),$(OUTPUT_FILE),$(IMG_DIR)/$(OUTPUT_FILE))
 
 # =============================================================================
 # UTILITY TARGETS (all require input file)
@@ -133,9 +148,9 @@ list-rotations: debug
 # TARGET: clean
 # -----------------------------------------------------------------------------
 clean:
-	rm -f $(TARGET) .gdb_history
-	@echo "Cleaned: executable and GDB history"
-	@echo "Note: Output files (*.bmp) are NOT deleted - delete manually if needed"
+	rm -f $(TARGET) $(SRC_DIR)/*.o .gdb_history
+	@echo "Cleaned: executable, object files, and GDB history"
+	@echo "Note: Image files in $(IMG_DIR)/ are NOT deleted"
 
 # -----------------------------------------------------------------------------
 # TARGET: help
@@ -145,6 +160,11 @@ help:
 	@echo "BMP Image Processor Makefile"
 	@echo "=================================================================="
 	@echo ""
+	@echo "FOLDER STRUCTURE:"
+	@echo "  include/          Header files (.h)"
+	@echo "  src/              Source files (.c)"
+	@echo "  bmp_img/          Image files (.bmp)"
+	@echo ""
 	@echo "BUILD TARGETS (no input file needed):"
 	@echo "  make              Build release version (optimized)"
 	@echo "  make release      Same as 'make'"
@@ -153,15 +173,16 @@ help:
 	@echo "  make list-rotations   Show available rotation types"
 	@echo ""
 	@echo "RUN TARGETS (INPUT_FILE is REQUIRED):"
-	@echo "  make run INPUT_FILE=your.bmp                    # Copy only"
+	@echo "  make run INPUT_FILE=photo.bmp                   # Assumes bmp_img/photo.bmp"
+	@echo "  make run INPUT_FILE=bmp_img/photo.bmp           # Explicit path"
 	@echo "  make run INPUT_FILE=a.bmp ROTATION=90cw         # Rotate 90° CW"
 	@echo "  make run INPUT_FILE=a.bmp ROTATION=90cw,hflip   # Batch rotation"
 	@echo "  make gdb INPUT_FILE=your.bmp [ROTATION=type]    # Debug with GDB"
 	@echo "  make valgrind INPUT_FILE=your.bmp [ROTATION=t]  # Check memory"
 	@echo ""
 	@echo "VARIABLES:"
-	@echo "  INPUT_FILE   : Source BMP file (REQUIRED)"
-	@echo "  OUTPUT_FILE  : Destination file (default: output.bmp)"
+	@echo "  INPUT_FILE   : Source BMP file (basename assumes bmp_img/, or use full path)"
+	@echo "  OUTPUT_FILE  : Destination file (default: bmp_img/output.bmp)"
 	@echo "  ROTATION     : Rotation type or batch (comma-separated)"
 	@echo ""
 	@echo "EXAMPLES:"
@@ -174,7 +195,8 @@ help:
 	@echo ""
 	@echo "IMPORTANT:"
 	@echo "  - INPUT_FILE is required for run/gdb/valgrind targets"
-	@echo "  - OUTPUT_FILE defaults to 'output.bmp'"
+	@echo "  - If no path given, assumes file is in bmp_img/"
+	@echo "  - OUTPUT_FILE defaults to 'bmp_img/output.bmp'"
 	@echo "  - ROTATION supports single type or comma-separated batch"
 	@echo "  - clean does NOT delete any .bmp files"
 	@echo "=================================================================="

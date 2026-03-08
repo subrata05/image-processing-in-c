@@ -1,4 +1,4 @@
-#include "bmp.h"
+#include "../include/bmp.h"
 
 /* Helper: Read little-endian values safely */
 static uint32_t readU32LE(const unsigned char *data, int offset)

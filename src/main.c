@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-#include "bmp.h"
-#include "rotation.h"
+#include "../include/bmp.h"
+#include "../include/rotation.h"
 
 #define DEFAULT_OUTPUT_FILE "output.bmp"
 
