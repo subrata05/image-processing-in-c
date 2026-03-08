@@ -1,6 +1,6 @@
 # BMP Image Processor
 
-A lightweight command-line tool written in C for loading, transforming, and saving BMP image files. Supports a wide range of rotations and flips, including batch operations. More to come later. 
+A lightweight command-line tool written in C for loading, transforming, and saving BMP image files. Supports a wide range of rotations and flips, including batch operations. More features to come later.
 
 ---
 
@@ -15,7 +15,7 @@ image-processing-in-c/
 ├── include/
 │   ├── bmp.h           # BMPImage_t struct and bmp function prototypes
 │   └── rotation.h      # RotationType_t enum and rotation function prototypes
-├── bmp_img/            # Place your input BMP files here
+├── bmp_img/            # Input BMP files here
 ├── .gdbinit            # GDB configuration for debugging
 ├── Makefile
 └── README.md
@@ -53,7 +53,34 @@ make debug
 | `--batch <types>` | Apply multiple rotations in one go (comma-separated) |
 | `-o <file>` | Specify output file (default: `output.bmp`) |
 | `--list` | List all available rotation types |
-| `--help` / `-h` | Show usage information |
+| `--help` / `-h` | Show binary usage (CLI options only, not Make targets) |
+
+---
+
+## Getting Help
+
+There are two separate help systems depending on what you need:
+
+### Binary help (CLI options)
+```bash
+./img-processor --help
+# or
+./img-processor -h
+```
+Shows usage for the binary itself — input/output arguments, `--rotate`, `--batch`, `-o`, and `--list`.
+
+### Makefile help (Make targets & variables)
+```bash
+make help
+```
+Shows all Make targets, variables, and examples for the full `make run` / `make gdb` / `make valgrind` workflow.
+
+### List rotation types
+```bash
+./img-processor --list
+# or
+make list-rotations
+```
 
 ---
 
