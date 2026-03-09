@@ -9,6 +9,10 @@
 #define BMP_FILE_HEADER_SIZE 14
 #define BMP_MIN_INFO_SIZE 40
 
+#define BMP_SUPPORTED_BPP_8  8
+#define BMP_SUPPORTED_BPP_24 24
+#define BMP_SUPPORTED_BPP_32 32
+
 typedef struct
 {
     unsigned char fileHeader[BMP_FILE_HEADER_SIZE];

@@ -102,7 +102,7 @@ int bmpLoad(const char *filename, BMPImage_t *img)
        1bpp and 4bpp pack multiple pixels per byte and require
        nibble/bit-level handling not yet implemented.
        16bpp has sub-format ambiguity (RGB555 vs RGB565) not yet handled. */
-    if (img->bitDepth != 8 && img->bitDepth != 24 && img->bitDepth != 32)
+    if (img->bitDepth != BMP_SUPPORTED_BPP_8 && img->bitDepth != BMP_SUPPORTED_BPP_24 && img->bitDepth != BMP_SUPPORTED_BPP_32)
     {
         fprintf(stderr, "ERROR: Unsupported bit depth %u bpp in '%s'.\n",
                 img->bitDepth, filename);
