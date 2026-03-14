@@ -178,7 +178,7 @@ int filterNegative(const BMPImage_t *src, BMPImage_t *dst)
     return 0;
 }
 
-/* ============ UNIFIED INTERFACE ============ */
+/* UNIFIED INTERFACE */
 
 int applyFilter(const BMPImage_t *src, BMPImage_t *dst, FilterType_t type)
 {
@@ -194,7 +194,7 @@ int applyFilter(const BMPImage_t *src, BMPImage_t *dst, FilterType_t type)
     }
 }
 
-/* ============ UTILITY FUNCTIONS ============ */
+/* UTILITY FUNCTIONS */
 
 const char *filterTypeToString(FilterType_t type)
 {
@@ -224,7 +224,7 @@ FilterType_t parseFilterString(const char *str)
     return (FilterType_t)-1; /* Invalid */
 }
 
-/* ============ BATCH OPERATIONS ============ */
+/* BATCH OPERATIONS */
 
 int filterBatch(const BMPImage_t *src, BMPImage_t *dst,
                 const FilterType_t *operations, int numOps)
@@ -270,3 +270,4 @@ int filterBatch(const BMPImage_t *src, BMPImage_t *dst,
 
     return 0;
 }
+

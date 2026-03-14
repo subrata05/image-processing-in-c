@@ -1,16 +1,18 @@
 # BMP Image Processor
 
-A command-line BMP image processing tool written in C with zero external libraries. Supports rotations, flips, transpositions, and batch operations directly on raw BMP pixel data.
+A command-line BMP image processing tool written in C with zero external libraries. Supports rotations, flips, transpositions, filters, and batch operations directly on raw BMP pixel data.
 
 ```
 image-processing-in-c/
 ├── src/
 │   ├── main.c          # Entry point and argument parsing
 │   ├── bmp.c           # BMP load, save, and free
-│   └── rotation.c      # All transformation logic
+│   ├── rotation.c      # All transformation logic
+│   └── filter.c        # All filter logic
 ├── include/
 │   ├── bmp.h           # BMPImage_t struct and prototypes
-│   └── rotation.h      # RotationType_t enum and prototypes
+│   ├── rotation.h      # RotationType_t enum and prototypes
+│   └── filter.h        # FilterType_t enum and prototypes
 ├── bmp_img/            # Input BMP files here
 ├── .gdbinit            # Custom GDB debugging environment
 └── Makefile
@@ -48,6 +50,9 @@ make
 
 # Run a rotation
 make run INPUT_FILE=bmp_img/photo.bmp ROTATION=90cw OUTPUT_FILE=bmp_img/out.bmp
+
+# Run a filter
+make run INPUT_FILE=bmp_img/photo.bmp FILTER=grayscale OUTPUT_FILE=bmp_img/gray.bmp
 
 # See all available options
 make help
@@ -90,16 +95,17 @@ These variables are passed alongside any make target that runs the binary.
 | `INPUT_FILE` | Yes (for run/gdb/valgrind) | — | Path to the source `.bmp` file. If no directory is given, assumes `bmp_img/` |
 | `OUTPUT_FILE` | No | `bmp_img/output.bmp` | Path for the output `.bmp` file |
 | `ROTATION` | No | — | Rotation type string (single) or comma-separated list (batch). See rotation types below |
+| `FILTER` | No | — | Filter type string. See filter types below. Can be combined with `ROTATION` in the same command |
 
 ---
 
 ## Run Targets
 
 ### `make run`
-Builds (debug) and runs the processor. If `ROTATION` contains a comma, it automatically uses `--batch`. Otherwise it uses `--rotate`.
+Builds (debug) and runs the processor. If `ROTATION` contains a comma, it automatically uses `--batch`. Otherwise it uses `--rotate`. `FILTER` is passed as `--filter`.
 
 ```bash
-# Copy only — no rotation applied
+# Copy only — no operation applied
 make run INPUT_FILE=bmp_img/photo.bmp
 
 # Single rotation, default output path
@@ -111,6 +117,12 @@ make run INPUT_FILE=bmp_img/photo.bmp ROTATION=180 OUTPUT_FILE=bmp_img/flipped.b
 # Batch rotation — comma-separated, applied left to right
 make run INPUT_FILE=bmp_img/photo.bmp ROTATION=90cw,hflip OUTPUT_FILE=bmp_img/result.bmp
 
+# Apply a filter
+make run INPUT_FILE=bmp_img/photo.bmp FILTER=grayscale OUTPUT_FILE=bmp_img/gray.bmp
+
+# Apply a filter and a rotation together
+make run INPUT_FILE=bmp_img/photo.bmp ROTATION=90cw FILTER=grayscale OUTPUT_FILE=bmp_img/out.bmp
+
 # Filename only — Makefile prepends bmp_img/ automatically
 make run INPUT_FILE=photo.bmp ROTATION=vflip
 ```
@@ -120,6 +132,7 @@ Builds (debug) and launches GDB with `.gdbinit` loaded. Program arguments are pa
 
 ```bash
 make gdb INPUT_FILE=bmp_img/photo.bmp ROTATION=90cw
+make gdb INPUT_FILE=bmp_img/photo.bmp FILTER=grayscale
 make gdb INPUT_FILE=bmp_img/photo.bmp ROTATION=180 OUTPUT_FILE=bmp_img/debug_out.bmp
 ```
 
@@ -128,6 +141,7 @@ Builds (debug) and runs the program under Valgrind with full memory checking. Fl
 
 ```bash
 make valgrind INPUT_FILE=bmp_img/photo.bmp ROTATION=90cw
+make valgrind INPUT_FILE=bmp_img/photo.bmp FILTER=negative
 make valgrind INPUT_FILE=bmp_img/photo.bmp ROTATION=hflip,90cw OUTPUT_FILE=bmp_img/out.bmp
 ```
 
@@ -136,6 +150,13 @@ Prints all rotation type strings and their aliases in the terminal. Quick refere
 
 ```bash
 make list-rotations
+```
+
+### `make list-filters`
+Prints all filter type strings and their aliases in the terminal.
+
+```bash
+make list-filters
 ```
 
 ### `make help`
@@ -161,9 +182,11 @@ The `make run` target is a wrapper. The binary can also be called directly for f
 | Option | Description |
 |---|---|
 | `--rotate <type>` | Apply a rotation. Can be repeated multiple times — applied in order |
+| `--filter <type>` | Apply a filter. Can be repeated multiple times — applied in order |
 | `--batch <types>` | Apply multiple rotations in one pass. Comma-separated, no spaces |
 | `-o <file>` | Set the output file path. Default is `output.bmp` |
 | `--list` | Print all available rotation type strings and exit |
+| `--list-filters` | Print all available filter type strings and exit |
 | `--help`, `-h` | Print usage information and exit |
 
 ### Examples
@@ -175,14 +198,29 @@ The `make run` target is a wrapper. The binary can also be called directly for f
 # Single rotation
 ./img-processor bmp_img/photo.bmp --rotate 90cw -o bmp_img/rotated.bmp
 
+# Single filter
+./img-processor bmp_img/photo.bmp --filter grayscale -o bmp_img/gray.bmp
+
+# Single filter — negative
+./img-processor bmp_img/photo.bmp --filter negative -o bmp_img/neg.bmp
+
 # Chain multiple --rotate flags (applied in the order given)
 ./img-processor bmp_img/photo.bmp --rotate mirror --rotate 90cw -o bmp_img/result.bmp
 
-# Batch — equivalent to chaining, but in one flag
+# Chain rotation and filter together (applied in the order given)
+./img-processor bmp_img/photo.bmp --rotate 90cw --filter grayscale -o bmp_img/result.bmp
+
+# Filter first, then rotation
+./img-processor bmp_img/photo.bmp --filter negative --rotate hflip -o bmp_img/result.bmp
+
+# Batch — equivalent to chaining rotations, but in one flag
 ./img-processor bmp_img/photo.bmp --batch 90cw,hflip,90ccw -o bmp_img/complex.bmp
 
 # List all rotation aliases
 ./img-processor --list
+
+# List all filter aliases
+./img-processor --list-filters
 
 # Show help
 ./img-processor --help
@@ -208,19 +246,43 @@ All aliases for a type are interchangeable. Use whichever feels most natural.
 
 ---
 
+## Filter Types
+
+All aliases for a type are interchangeable.
+
+| Filter | Aliases | Description |
+|---|---|---|
+| Grayscale | `gray`, `grey`, `grayscale`, `greyscale`, `gs` | Converts to grayscale using the ITU-R BT.601 luminance formula: `Y = 0.299·R + 0.587·G + 0.114·B`. For 8 bpp images the palette entries are greyed instead of touching pixel indices. Alpha channel is preserved for 32 bpp. |
+| Negative | `neg`, `negative`, `invert`, `inv` | Inverts every color channel: `channel = 255 - channel`. Alpha channel is preserved for 32 bpp. For 8 bpp the palette entries are inverted. |
+
+---
+
 ## Batch Operations
 
-Comma-separated rotations are applied in sequence, left to right. Up to 10 operations per batch.
+Comma-separated rotations passed via `ROTATION` or `--batch` are applied in sequence, left to right. Up to 10 total operations (rotations and filters combined) per run.
 
 ```bash
 # 90° CW, then flip horizontally
 make run INPUT_FILE=bmp_img/photo.bmp ROTATION=90cw,hflip
 
-# Three operations
+# Three rotation operations
 make run INPUT_FILE=bmp_img/photo.bmp ROTATION=90cw,hflip,90ccw
 
-# Four operations
+# Four rotation operations
 make run INPUT_FILE=bmp_img/photo.bmp ROTATION=180,hflip,vflip,transpose
+```
+
+When mixing rotations and filters, use the binary directly with repeated `--rotate` and `--filter` flags. They are applied in the order given on the command line:
+
+```bash
+# Rotate, then convert to grayscale
+./img-processor bmp_img/photo.bmp --rotate 90cw --filter grayscale -o bmp_img/out.bmp
+
+# Convert to negative, then rotate
+./img-processor bmp_img/photo.bmp --filter negative --rotate hflip -o bmp_img/out.bmp
+
+# Two rotations, then a filter
+./img-processor bmp_img/photo.bmp --rotate 90cw --rotate hflip --filter grayscale -o bmp_img/out.bmp
 ```
 
 ---
@@ -233,6 +295,7 @@ The `.gdbinit` file configures GDB with custom breakpoints and commands tailored
 
 ```bash
 make gdb INPUT_FILE=bmp_img/photo.bmp ROTATION=180
+make gdb INPUT_FILE=bmp_img/photo.bmp FILTER=grayscale
 ```
 
 GDB loads, prints the startup message, and pauses. Type `run` to start execution.
@@ -243,8 +306,8 @@ GDB loads, prints the startup message, and pauses. Type `run` to start execution
 
 | Breakpoint | File and line | Fires when | What is in scope |
 |---|---|---|---|
-| BP 1 | `src/main.c:154` | Right after `bmpLoad()` returns | `srcImg` fully loaded |
-| BP 2 | `src/main.c:177` | Right after `rotateImage()` / `rotateBatch()` returns | `srcImg` and `dstImg` both ready |
+| BP 1 | `src/main.c:245` | Right after `bmpLoad()` returns | `srcImg` fully loaded |
+| BP 2 | `src/main.c:292` | Right after any operation (rotation or filter) completes | `srcImg` and `dstImg` both ready |
 
 ---
 
@@ -286,13 +349,13 @@ Available at: BP 1 and BP 2.
 ---
 
 #### `show_dst`
-Prints the complete memory layout of the destination/rotated image (`dstImg`). Same fields as `show_src` but for `dstImg`.
+Prints the complete memory layout of the destination/processed image (`dstImg`). Same fields as `show_src` but for `dstImg`.
 
 ```
 (gdb) show_dst
 ```
 
-Available at: BP 2 only — `dstImg` does not exist before rotation completes.
+Available at: BP 2 only — `dstImg` does not exist before the operation completes.
 
 ---
 
@@ -329,6 +392,17 @@ Available at: any time during execution.
 
 ---
 
+#### `filter_info`
+Lists all two `FilterType_t` enum values with their integer codes and string aliases.
+
+```
+(gdb) filter_info
+```
+
+Available at: any time during execution.
+
+---
+
 ### Typical Debug Session
 
 ```bash
@@ -343,10 +417,11 @@ make gdb INPUT_FILE=bmp_img/photo.bmp ROTATION=90cw
                        # check: Width, Height, Bit depth, Pixel buffer address
 
 (gdb) continue
-# --- stops at BP 2 (after rotation) ---
+# --- stops at BP 2 (after operation) ---
 
-(gdb) show_dst         # inspect rotated image in memory
+(gdb) show_dst         # inspect processed image in memory
                        # for 90° CW: Width and Height should be swapped
+                       # for grayscale: dimensions unchanged, palette/pixel data modified
 
 (gdb) compare          # side-by-side confirmation
 
@@ -364,7 +439,8 @@ make gdb INPUT_FILE=bmp_img/photo.bmp ROTATION=90cw
 | `ERROR: Unsupported BMP header size (N)` | Header is smaller than 40 bytes — non-standard or malformed BMP |
 | `ERROR: Unsupported bit depth N bpp` | Only 8, 24, 32 bpp supported. 1, 4, 16 bpp are not yet implemented |
 | `ERROR: Unknown rotation type '...'` | Invalid string. Run `--list` or `make list-rotations` to see valid aliases |
-| `ERROR: Too many rotation operations (max 10)` | More than 10 operations passed via `--rotate` flags |
+| `ERROR: Unknown filter type '...'` | Invalid string. Run `--list-filters` or `make list-filters` to see valid aliases |
+| `ERROR: Too many operations (max 10)` | More than 10 combined rotation and filter operations specified |
 | `ERROR: No input file specified!` | `INPUT_FILE` was not set. Add `INPUT_FILE=bmp_img/photo.bmp` to the command |
 | `ERROR: Memory allocation failed` | System ran out of memory — image may be too large |
 | `ERROR: Cannot read ...` | File is truncated or unreadable mid-read. The file may be corrupted |
@@ -392,20 +468,42 @@ make run INPUT_FILE=bmp_img/photo.bmp ROTATION=vflip OUTPUT_FILE=bmp_img/out.bmp
 # Transpose
 make run INPUT_FILE=bmp_img/photo.bmp ROTATION=transpose OUTPUT_FILE=bmp_img/out.bmp
 
+# Convert to grayscale
+make run INPUT_FILE=bmp_img/photo.bmp FILTER=grayscale OUTPUT_FILE=bmp_img/gray.bmp
+
+# Convert to negative
+make run INPUT_FILE=bmp_img/photo.bmp FILTER=negative OUTPUT_FILE=bmp_img/neg.bmp
+
+# Rotate and apply grayscale together
+make run INPUT_FILE=bmp_img/photo.bmp ROTATION=90cw FILTER=grayscale OUTPUT_FILE=bmp_img/out.bmp
+
 # Batch: 90° CW then horizontal flip
 make run INPUT_FILE=bmp_img/photo.bmp ROTATION=90cw,hflip OUTPUT_FILE=bmp_img/out.bmp
 
 # Batch: three operations
 make run INPUT_FILE=bmp_img/photo.bmp ROTATION=90cw,hflip,90ccw OUTPUT_FILE=bmp_img/out.bmp
 
-# Debug in GDB
+# Mixed pipeline via binary: rotate then filter
+./img-processor bmp_img/photo.bmp --rotate 90cw --filter grayscale -o bmp_img/out.bmp
+
+# Mixed pipeline via binary: filter then rotate
+./img-processor bmp_img/photo.bmp --filter negative --rotate hflip -o bmp_img/out.bmp
+
+# Debug in GDB with a filter
+make gdb INPUT_FILE=bmp_img/photo.bmp FILTER=grayscale
+
+# Debug in GDB with a rotation
 make gdb INPUT_FILE=bmp_img/photo.bmp ROTATION=180
 
 # Check for memory leaks
 make valgrind INPUT_FILE=bmp_img/photo.bmp ROTATION=90cw
+make valgrind INPUT_FILE=bmp_img/photo.bmp FILTER=negative
 
 # List all rotation type aliases
 make list-rotations
+
+# List all filter type aliases
+make list-filters
 
 # See all make targets and variables
 make help
@@ -413,4 +511,3 @@ make help
 # Clean build artifacts (images are NOT deleted)
 make clean
 ```
-
