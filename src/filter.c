@@ -145,7 +145,7 @@ int filterNegative(const BMPImage_t *src, BMPImage_t *dst)
     int width  = dst->width;
     int height = abs(dst->height);
     int rowSize = ((width * dst->bitDepth + 31) / 32) * 4;
-
+    
     if (dst->bitDepth == BMP_SUPPORTED_BPP_24 || dst->bitDepth == BMP_SUPPORTED_BPP_32)
     {
         int bytesPerPixel = dst->bitDepth / 8;
@@ -163,6 +163,7 @@ int filterNegative(const BMPImage_t *src, BMPImage_t *dst)
             }
         }
     }
+
     else if (dst->bitDepth == BMP_SUPPORTED_BPP_8)
     {
         int numColors = dst->colorTabSize / 4;
