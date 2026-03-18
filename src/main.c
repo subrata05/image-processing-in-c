@@ -39,8 +39,19 @@ void listRotationTypes(void)
 void listFilterTypes(void)
 {
     printf("\nAvailable filter types:\n");
-    printf("  %-30s : %s\n", "gray, grey, grayscale, gs",   filterTypeToString(FILTER_GRAYSCALE));
-    printf("  %-30s : %s\n", "neg, negative, invert, inv",  filterTypeToString(FILTER_NEGATIVE));
+    printf("  %-35s : %s\n", "gray, grey, grayscale, gs",    filterTypeToString(FILTER_GRAYSCALE));
+    printf("  %-35s : %s\n", "neg, negative, invert, inv",   filterTypeToString(FILTER_NEGATIVE));
+    printf("  %-35s : %s\n", "sepia, sep",                   filterTypeToString(FILTER_SEPIA));
+    printf("  %-35s : %s\n", "bright, brighten, bup",        filterTypeToString(FILTER_BRIGHTNESS_UP));
+    printf("  %-35s : %s\n", "darken, bdown",                filterTypeToString(FILTER_BRIGHTNESS_DOWN));
+    printf("  %-35s : %s\n", "contrastup, cup, contrast+",   filterTypeToString(FILTER_CONTRAST_UP));
+    printf("  %-35s : %s\n", "contrastdown, cdown, contrast-",filterTypeToString(FILTER_CONTRAST_DOWN));
+    printf("  %-35s : %s\n", "threshold, thresh, bw",        filterTypeToString(FILTER_THRESHOLD));
+    printf("  %-35s : %s\n", "red, redboost, rb",            filterTypeToString(FILTER_RED_BOOST));
+    printf("  %-35s : %s\n", "green, greenboost, gb",        filterTypeToString(FILTER_GREEN_BOOST));
+    printf("  %-35s : %s\n", "blue, blueboost, bb",          filterTypeToString(FILTER_BLUE_BOOST));
+    printf("  %-35s : %s\n", "warm, warmth",                 filterTypeToString(FILTER_WARM));
+    printf("  %-35s : %s\n", "cool, cold",                   filterTypeToString(FILTER_COOL));
     printf("\n");
 }
 
@@ -63,10 +74,21 @@ void printMainUsage(const char *programName)
     printf("\nFilter types:\n");
     printf("  gray/grey/grayscale/gs   : Convert to grayscale\n");
     printf("  neg/negative/invert/inv  : Negative (invert colors)\n");
+    printf("  sepia/sep                : Sepia tone\n");
+    printf("  bright/bup               : Brightness increase\n");
+    printf("  darken/bdown             : Brightness decrease\n");
+    printf("  contrastup/cup           : Contrast increase\n");
+    printf("  contrastdown/cdown       : Contrast decrease\n");
+    printf("  threshold/thresh/bw      : Black & white threshold\n");
+    printf("  red/green/blue           : Channel boost\n");
+    printf("  warm/cool                : Color temperature\n");
     printf("\nExamples:\n");
     printf("  %s photo.bmp --rotate 90cw -o rotated.bmp\n", programName);
     printf("  %s photo.bmp --filter grayscale -o gray.bmp\n", programName);
     printf("  %s photo.bmp --filter negative -o neg.bmp\n", programName);
+    printf("  %s photo.bmp --filter sepia -o sepia.bmp\n", programName);
+    printf("  %s photo.bmp --filter warm -o warm.bmp\n", programName);
+    printf("  %s photo.bmp --filter bw -o bw.bmp\n", programName);
     printf("  %s photo.bmp --rotate 90cw --filter gray -o result.bmp\n", programName);
     printf("  %s photo.bmp --batch 90cw,hflip -o complex.bmp\n", programName);
 }

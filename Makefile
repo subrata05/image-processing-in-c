@@ -38,8 +38,10 @@ OUTPUT_FILE ?= $(IMG_DIR)/output.bmp
 # Examples: ROTATION=90cw | ROTATION=hflip,90cw | ROTATION=180
 ROTATION ?=
 
-# FILTER: Optional - filter type (grayscale, negative)
-# Examples: FILTER=grayscale | FILTER=negative
+# FILTER: Optional - filter type
+# Examples: FILTER=grayscale | FILTER=negative | FILTER=sepia | FILTER=bup |
+#           FILTER=bdown | FILTER=cup | FILTER=cdown | FILTER=bw |
+#           FILTER=red | FILTER=green | FILTER=blue | FILTER=warm | FILTER=cool
 FILTER ?=
 
 # =============================================================================
@@ -160,8 +162,19 @@ list-rotations: debug
 # -----------------------------------------------------------------------------
 list-filters: debug
 	@echo "Available filter types:"
-	@echo "  gray, grey, grayscale, gs   : Convert to grayscale"
-	@echo "  neg, negative, invert, inv  : Negative (invert colors)"
+	@echo "  gray, grey, grayscale, gs        : Convert to grayscale"
+	@echo "  neg, negative, invert, inv        : Negative (invert colors)"
+	@echo "  sepia, sep                        : Sepia tone"
+	@echo "  bright, brighten, bup             : Brightness increase (+30%)"
+	@echo "  darken, bdown                     : Brightness decrease (-30%)"
+	@echo "  contrastup, cup, contrast+        : Contrast increase (x1.5)"
+	@echo "  contrastdown, cdown, contrast-    : Contrast decrease (x0.6)"
+	@echo "  threshold, thresh, bw             : Threshold (black & white)"
+	@echo "  red, redboost, rb                 : Red channel boost"
+	@echo "  green, greenboost, gb             : Green channel boost"
+	@echo "  blue, blueboost, bb               : Blue channel boost"
+	@echo "  warm, warmth                      : Warm color temperature"
+	@echo "  cool, cold                        : Cool color temperature"
 
 # =============================================================================
 # UTILITY TARGETS (no input required)
@@ -202,6 +215,9 @@ help:
 	@echo "  make run INPUT_FILE=photo.bmp ROTATION=90cw,hflip    # Batch rotation"quick
 	@echo "  make run INPUT_FILE=photo.bmp FILTER=grayscale       # Grayscale"
 	@echo "  make run INPUT_FILE=photo.bmp FILTER=negative        # Negative"
+	@echo "  make run INPUT_FILE=photo.bmp FILTER=sepia           # Sepia tone"
+	@echo "  make run INPUT_FILE=photo.bmp FILTER=warm            # Warm temperature"
+	@echo "  make run INPUT_FILE=photo.bmp FILTER=bw              # Black & white"
 	@echo "  make gdb INPUT_FILE=your.bmp [ROTATION=type]         # Debug with GDB"
 	@echo "  make valgrind INPUT_FILE=your.bmp [FILTER=type]      # Check memory"
 	@echo ""
@@ -209,7 +225,8 @@ help:
 	@echo "  INPUT_FILE   : Source BMP file (basename assumes bmp_img/, or full path)"
 	@echo "  OUTPUT_FILE  : Destination file (default: bmp_img/output.bmp)"
 	@echo "  ROTATION     : Rotation type or batch (comma-separated)"
-	@echo "  FILTER       : Filter type (grayscale, negative)"
+	@echo "  FILTER       : Filter type (grayscale, negative, sepia, bup, bdown,"
+	@echo "                 cup, cdown, bw, red, green, blue, warm, cool, ...)"
 	@echo ""
 	@echo "DIRECT BINARY USAGE (mix rotations and filters):"
 	@echo "  ./img-processor photo.bmp --rotate 90cw --filter gray -o out.bmp"
